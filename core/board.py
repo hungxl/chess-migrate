@@ -372,7 +372,9 @@ class Board:
 
         if (self.chess_board.is_insufficient_material() or
             self.chess_board.is_seventyfive_moves() or
-            self.chess_board.is_fivefold_repetition()):
+            self.chess_board.is_fivefold_repetition() or
+            self.chess_board.is_fifty_moves() or
+            self.chess_board.is_repetition(3)):
             self.game_over = True
             self.is_stalemate = True
             if hasattr(self, 'record'):
