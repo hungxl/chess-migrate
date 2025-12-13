@@ -14,4 +14,5 @@ dependencies = [
     "lightning>=2.6.0",
     "chess>=1.11.2",
     "pydantic>=2.12.5",
+    "git-filter-repo>=2.47.0",
 ]
