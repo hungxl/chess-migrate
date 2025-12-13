@@ -1,7 +1,8 @@
-from core.types import PieceType, Color, Position
+from core.types import Color, Position
 from core.board import Board
 from typing import Optional
 import random
+import chess
 ###
 ### Note: Check later piece variable in quiescence_search function is needed
 ###
@@ -12,12 +13,12 @@ QUIESCENCE_MAX_DEPTH = 0
 MAX_SEARCH_DEPTH = 2
 # Piece values for the evaluation function (in centipawns/pawn units)
 PIECE_VALUES = {
-    PieceType.PAWN: 10,
-    PieceType.KNIGHT: 30,
-    PieceType.BISHOP: 35,
-    PieceType.ROOK: 60,
-    PieceType.QUEEN: 90,
-    PieceType.KING: 9999, 
+    chess.PAWN: 10,
+    chess.KNIGHT: 30,
+    chess.BISHOP: 35,
+    chess.ROOK: 60,
+    chess.QUEEN: 90,
+    chess.KING: 9999, 
 }
 
 

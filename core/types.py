@@ -4,18 +4,27 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 from time import time
+import chess
 
 if TYPE_CHECKING:
     from .pieces import Piece
 
+DICT_PIECE_TYPES = {
+            chess.PAWN: "Pawn",
+            chess.ROOK: "Rook",
+            chess.KNIGHT: "Knight",
+            chess.BISHOP: "Bishop",
+            chess.QUEEN: "Queen",
+            chess.KING: "King"
+            }
 
-class PieceType(Enum):
-    PAWN = "Pawn"
-    ROOK = "Rook"
-    KNIGHT = "Knight"
-    BISHOP = "Bishop"
-    QUEEN = "Queen"
-    KING = "King"
+# class PieceType(Enum):
+#         chess.PAWN = "Pawn"
+#         chess.ROOK = "Rook"
+#         chess.KNIGHT = "Knight"
+#         chess.BISHOP = "Bishop"
+#         chess.QUEEN = "Queen"
+#         chess.KING = "King"
 
 
 class Color(Enum):
@@ -44,6 +53,14 @@ class Position:
         col_letter = chr(ord('a') + self.col)
         row_number = 8 - self.row
         return f"{col_letter}{row_number}"
+    
+    @classmethod
+    def from_algebraic(cls, notation: str) -> 'Position':
+        """Create Position from algebraic notation (e.g., 'e4')."""
+        col = ord(notation[0]) - ord('a')
+        row = 8 - int(notation[1])
+        return cls(row, col)
+    
 
 
 @dataclass
@@ -54,7 +71,7 @@ class Move:
     captured: Optional['Piece'] = None
     is_castling: bool = False
     is_en_passant: bool = False
-    promotion_type: Optional[PieceType] = None
+    promotion_type: Optional[chess.PieceType] = None
     castling_rook_start: Optional[Position] = None
     castling_rook_end: Optional[Position] = None
     # For undo support
@@ -70,13 +87,13 @@ class Move:
             return "O-O" if self.end.col == 6 else "O-O-O"
         
         piece_symbol = ""
-        if self.piece.piece_type != PieceType.PAWN:
+        if self.piece.piece_type != chess.PAWN:
             symbols = {
-                PieceType.KING: "K",
-                PieceType.QUEEN: "Q",
-                PieceType.ROOK: "R",
-                PieceType.BISHOP: "B",
-                PieceType.KNIGHT: "N",
+                chess.KING: "K",
+                chess.QUEEN: "Q",
+                chess.ROOK: "R",
+                chess.BISHOP: "B",
+                chess.KNIGHT: "N",
             }
             piece_symbol = symbols.get(self.piece.piece_type, "")
         
@@ -84,7 +101,7 @@ class Move:
         
         # For pawn captures, include starting file
         start_file = ""
-        if self.piece.piece_type == PieceType.PAWN and capture:
+        if self.piece.piece_type == chess.PAWN and capture:
             start_file = chr(ord('a') + self.start.col)
         
         dest = self.end.to_algebraic()
@@ -92,10 +109,10 @@ class Move:
         promotion = ""
         if self.promotion_type:
             promo_symbols = {
-                PieceType.QUEEN: "Q",
-                PieceType.ROOK: "R",
-                PieceType.BISHOP: "B",
-                PieceType.KNIGHT: "N",
+                chess.QUEEN: "Q",
+                chess.ROOK: "R",
+                chess.BISHOP: "B",
+                chess.KNIGHT: "N",
             }
             promotion = "=" + promo_symbols.get(self.promotion_type, "Q")
         
@@ -123,10 +140,10 @@ class Move:
         promo = ''
         if self.promotion_type:
             promo_map = {
-                PieceType.QUEEN: 'q',
-                PieceType.ROOK: 'r',
-                PieceType.BISHOP: 'b',
-                PieceType.KNIGHT: 'n',
+                chess.QUEEN: 'q',
+                chess.ROOK: 'r',
+                chess.BISHOP: 'b',
+                chess.KNIGHT: 'n',
             }
             promo = promo_map.get(self.promotion_type, 'q')
         return f"{start_sq}{end_sq}{promo}"
