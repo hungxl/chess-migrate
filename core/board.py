@@ -1,24 +1,62 @@
 """Chess board class with game state management."""
 
 from typing import Optional
-from .types import PieceType, Color, Position, Move
+import chess
+import chess.pgn
+import time
+from pathlib import Path
+from .types import Color, Position, Move
 from .pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King, create_piece
 
-
+import chess
 class Board:
-    def __init__(self):
+    def __init__(self, white_player: str = "Minimax", black_player: str = "Minimax"):
         self.grid: list[list[Optional[Piece]]] = [[None] * 8 for _ in range(8)]
         self.current_turn = Color.WHITE
+        self.white_player = white_player
+        self.black_player = black_player
         self.move_history: list[Move] = []
         self.redo_stack: list[Move] = []  # For redo functionality
         self.en_passant_target: Optional[Position] = None
         self.white_king_pos: Optional[Position] = None
         self.black_king_pos: Optional[Position] = None
         self.game_over = False
-        self.winner: Optional[Color] = None
+        self.winner: str | None = None
         self.is_stalemate = False
-        
+        self.is_main_board = True  # To differentiate between main and AI boards
+        self.start_time = 0.0
+        self.chess_board = chess.Board() # Important, will migrate to it instead using the whole class in future
+
         self._setup_initial_position()
+        self.setup_record()
+    
+    def switch_to_bot_mode(self, is_bot_board: bool = True):
+        """Set whether this board is in the minimax/ ai mode.
+        Recording PGN is only done for the main board."""
+        self.is_main_board = not is_bot_board
+        if is_bot_board:
+            # Create a separate chess.Board for AI calculations
+            self._saved_board = self.chess_board.copy()
+        else:
+            # Restore the main chess.Board
+            self.chess_board = self._saved_board
+
+
+    def setup_record(self):
+        self.record = chess.pgn.Game()
+        self.record.headers["Event"] = f"{self.white_player} vs {self.black_player} Chess"
+        self.record.headers["Date"] = time.strftime("%Y.%m.%d_%H.%M.%S")
+        self.record.headers["White"] = self.white_player
+        self.record.headers["Black"] = self.black_player
+        self.node = self.record
+
+    def save_record(self):
+        record_dir=Path(__file__).parent.parent / "records"
+        record_dir.mkdir(exist_ok=True)
+        
+        record = record_dir / f"chess_record_{self.record.headers['Date']}.pgn"
+        with open(record, "w", encoding="utf-8") as f:
+            print(self.record, file=f)
     
     def _setup_initial_position(self):
         """Set up the initial chess position."""
@@ -37,6 +75,8 @@ class Board:
         # Track king positions
         self.white_king_pos = Position(7, 4)
         self.black_king_pos = Position(0, 4)
+
+        self.start_time = time.time()
     
     def get_piece(self, pos: Position) -> Optional[Piece]:
         if pos.is_valid():
@@ -50,7 +90,7 @@ class Board:
                 piece.position = pos
     
     def move_piece(self, start: Position, end: Position, 
-                   promotion_type: Optional[PieceType] = None) -> Optional[Move]:
+                   promotion_type: Optional[chess.PieceType] = None) -> Optional[Move]:
         """Execute a move and return the Move object."""
         piece = self.get_piece(start)
         if piece is None or piece.color != self.current_turn:
@@ -108,7 +148,7 @@ class Board:
         original_piece = piece
         if isinstance(piece, Pawn) and (end.row == 0 or end.row == 7):
             if promotion_type is None:
-                promotion_type = PieceType.QUEEN
+                promotion_type = chess.QUEEN
             new_piece = create_piece(promotion_type, piece.color, end)
             new_piece.has_moved = True
             self.set_piece(end, new_piece)
@@ -135,9 +175,30 @@ class Board:
             castling_rook_end=castling_rook_end,
             piece_had_moved=piece_had_moved,
             rook_had_moved=rook_had_moved,
-            previous_en_passant=previous_en_passant
+            previous_en_passant=previous_en_passant,
         )
+        # Update internal chess.Board
+        chess_move = chess.Move.from_uci(move.to_uci())
+        self.chess_board.push(chess_move)
+
+        move.timestamp = time.time()
         self.move_history.append(move)
+
+        # Update PGN record after move (only for main board)
+        if self.is_main_board and hasattr(self, 'record') and hasattr(self, 'node'):
+            uci = move.to_uci()
+            if uci:
+                chess_move = chess.Move.from_uci(uci)
+                self.node = self.node.add_variation(chess_move)
+                # Add time taken as comment if possible
+                if len(self.move_history) > 1:
+                    prev_move = self.move_history[-2]
+                    if hasattr(prev_move, 'timestamp'):
+                        time_taken = move.timestamp - prev_move.timestamp
+                        self.node.comment = f"Time: {time_taken:.6f}s"
+                else:
+                    time_taken = move.timestamp - self.start_time
+                    self.node.comment = f"Time: {time_taken:.6f}s"
         
         # Switch turn
         self.current_turn = Color.BLACK if self.current_turn == Color.WHITE else Color.WHITE
@@ -154,6 +215,8 @@ class Board:
         
         move = self.move_history.pop()
         self.redo_stack.append(move)
+
+        undomove = self.chess_board.pop()
         
         # Get the piece at the end position
         piece_at_end = self.get_piece(move.end)
@@ -214,7 +277,9 @@ class Board:
             return None
         
         move = self.redo_stack.pop()
-        
+
+        self.chess_board.push(chess.Move.from_uci(move.to_uci()))
+
         # Re-execute the move
         piece = self.get_piece(move.start)
         if piece is None:
@@ -295,10 +360,26 @@ class Board:
             self.game_over = True
             if self.is_in_check(self.current_turn):
                 # Checkmate - the other player wins
-                self.winner = Color.BLACK if self.current_turn == Color.WHITE else Color.WHITE
+                self.winner = self.white_player if self.current_turn == Color.WHITE else self.black_player
+                # Update PGN result
+                if hasattr(self, 'record'):
+                    self.record.headers["Result"] = "1-0" if self.current_turn == Color.WHITE else "0-1"
             else:
                 # Stalemate
                 self.is_stalemate = True
+                if hasattr(self, 'record'):
+                    self.record.headers["Result"] = "1/2-1/2"
+
+        if (self.chess_board.is_insufficient_material() or
+            self.chess_board.is_seventyfive_moves() or
+            self.chess_board.is_fivefold_repetition() or
+            self.chess_board.is_fifty_moves() or
+            self.chess_board.is_repetition(3)):
+            self.game_over = True
+            self.is_stalemate = True
+            if hasattr(self, 'record'):
+                self.record.headers["Result"] = "1/2-1/2"
+        
     
     def is_in_check(self, color: Color) -> bool:
         """Check if the given color's king is in check."""

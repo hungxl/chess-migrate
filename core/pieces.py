@@ -1,15 +1,15 @@
 """Chess piece classes."""
 
 from typing import Optional, TYPE_CHECKING
-from .types import PieceType, Color, Position
-
+from .types import Color, Position, DICT_PIECE_TYPES
+import chess
 if TYPE_CHECKING:
     from .board import Board
     import pygame
 
 
 class Piece:
-    def __init__(self, color: Color, piece_type: PieceType, position: Position):
+    def __init__(self, color: Color, piece_type: chess.PieceType, position: Position):
         self.color = color
         self.piece_type = piece_type
         self.position = position
@@ -18,7 +18,7 @@ class Piece:
     
     def get_image_filename(self) -> str:
         color_prefix = self.color.value
-        piece_name = self.piece_type.value
+        piece_name = DICT_PIECE_TYPES[self.piece_type]
         return f"{color_prefix}_{piece_name}.png"
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
@@ -47,7 +47,7 @@ class Piece:
 
 class Pawn(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.PAWN, position)
+        super().__init__(color, chess.PAWN, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         moves = []
@@ -81,7 +81,7 @@ class Pawn(Piece):
 
 class Rook(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.ROOK, position)
+        super().__init__(color, chess.ROOK, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         return get_straight_moves(self, board)
@@ -89,7 +89,7 @@ class Rook(Piece):
 
 class Knight(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.KNIGHT, position)
+        super().__init__(color, chess.KNIGHT, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         moves = []
@@ -110,7 +110,7 @@ class Knight(Piece):
 
 class Bishop(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.BISHOP, position)
+        super().__init__(color, chess.BISHOP, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         return get_diagonal_moves(self, board)
@@ -118,7 +118,7 @@ class Bishop(Piece):
 
 class Queen(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.QUEEN, position)
+        super().__init__(color, chess.QUEEN, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         return get_straight_moves(self, board) + get_diagonal_moves(self, board)
@@ -126,7 +126,7 @@ class Queen(Piece):
 
 class King(Piece):
     def __init__(self, color: Color, position: Position):
-        super().__init__(color, PieceType.KING, position)
+        super().__init__(color, chess.KING, position)
     
     def get_potential_moves(self, board: 'Board') -> list[Position]:
         moves = []
@@ -226,14 +226,14 @@ def get_diagonal_moves(piece: Piece, board: 'Board') -> list[Position]:
     return moves
 
 
-def create_piece(piece_type: PieceType, color: Color, position: Position) -> Piece:
+def create_piece(piece_type: chess.PieceType, color: Color, position: Position) -> Piece:
     """Factory function to create a piece."""
     piece_classes = {
-        PieceType.PAWN: Pawn,
-        PieceType.ROOK: Rook,
-        PieceType.KNIGHT: Knight,
-        PieceType.BISHOP: Bishop,
-        PieceType.QUEEN: Queen,
-        PieceType.KING: King,
+        chess.PAWN: Pawn,
+        chess.ROOK: Rook,
+        chess.KNIGHT: Knight,
+        chess.BISHOP: Bishop,
+        chess.QUEEN: Queen,
+        chess.KING: King,
     }
     return piece_classes[piece_type](color, position)
