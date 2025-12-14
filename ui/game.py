@@ -731,7 +731,7 @@ class ChessGame:
         if self.board.is_stalemate:
             text = "Stalemate!"
         else:
-            winner = self.board.winner
+            winner = self.board.white_player if self.board.winner == Color.WHITE else self.board.black_player
             text = f"Checkmate! {winner} wins!"
         
         text_surface = font.render(text, True, COLOR_TEXT)
