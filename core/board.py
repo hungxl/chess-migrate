@@ -360,7 +360,7 @@ class Board:
             self.game_over = True
             if self.is_in_check(self.current_turn):
                 # Checkmate - the other player wins
-                self.winner = self.white_player if self.current_turn == Color.WHITE else self.black_player
+                self.winner = Color.BLACK if self.current_turn == Color.WHITE else Color.WHITE
                 # Update PGN result
                 if hasattr(self, 'record'):
                     self.record.headers["Result"] = "1-0" if self.current_turn == Color.WHITE else "0-1"
