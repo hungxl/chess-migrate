@@ -216,7 +216,7 @@ class Board:
         move = self.move_history.pop()
         self.redo_stack.append(move)
 
-        undomove = self.chess_board.pop()
+        self.chess_board.pop()
         
         # Get the piece at the end position
         piece_at_end = self.get_piece(move.end)
