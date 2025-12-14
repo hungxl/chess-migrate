@@ -175,18 +175,14 @@ class ChessGame:
         pygame.mixer.init()
 
         # Show menu before creating main game screen
-        if player1_type is None or player2_type is None:
-            self.player1_type, self.player2_type, self.player1_name, self.player2_name = self._choose_players_menu()
-        else:
-            self.player1_type = player1_type
-            self.player2_type = player2_type
-
+        self.player1_type, self.player2_type, self.player1_name, self.player2_name = self._choose_players_menu()
+        
         # Now set up the main game screen and assets
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Chess")
         self.clock = pygame.time.Clock()
 
-        self.board = Board()
+        self.board = Board(self.player1_name, self.player2_name)
         self.selected_piece: Optional[Piece] = None
         self.valid_moves: list[Position] = []
         self.promoting_pawn_move: Optional[tuple[Position, Position]] = None

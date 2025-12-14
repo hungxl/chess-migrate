@@ -21,7 +21,7 @@ class Board:
         self.white_king_pos: Optional[Position] = None
         self.black_king_pos: Optional[Position] = None
         self.game_over = False
-        self.winner: str | None = None
+        self.winner: Color | None = None
         self.is_stalemate = False
         self.is_main_board = True  # To differentiate between main and AI boards
         self.start_time = 0.0
@@ -45,7 +45,7 @@ class Board:
     def setup_record(self):
         self.record = chess.pgn.Game()
         self.record.headers["Event"] = f"{self.white_player} vs {self.black_player} Chess"
-        self.record.headers["Date"] = time.strftime("%Y-%m-%dT%H%M%S")
+        self.record.headers["Date"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         self.record.headers["White"] = self.white_player
         self.record.headers["Black"] = self.black_player
         self.node = self.record
@@ -54,7 +54,7 @@ class Board:
         record_dir=Path(__file__).parent.parent / "records"
         record_dir.mkdir(exist_ok=True)
         
-        record = record_dir / f"chess_record_{self.record.headers['Date']}.pgn"
+        record = record_dir / f"chess_record_{self.record.headers['Date'].replace(':', '')}.pgn"
         with open(record, "w", encoding="utf-8") as f:
             print(self.record, file=f)
     

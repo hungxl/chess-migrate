@@ -56,6 +56,6 @@ def torch_bot_move(board: Board):
     
     start = Position.from_algebraic(chess.square_name(chess_move.from_square))
     end = Position.from_algebraic(chess.square_name(chess_move.to_square))
-    promo = chess_move.promotion if chess_move.promotion is not None else None
+    promo = chess.QUEEN if chess_move.promotion is not None else None
     log.debug(f"Torch bot selected move: {start.to_algebraic()} to {end.to_algebraic()} with promo {promo}")
     return (start, end, promo)

@@ -39,11 +39,19 @@ class ChessUtils(BaseModel):
         best_move = None
         best_value = -1.0  # Initialize with a low value
         board = self.board
+        current_turn = board.turn
         
         # Sample a subset of legal moves for efficiency
         # Minimize the number of moves to 100 evaluate
         for move in board.legal_moves:
             board.push(move)
+            if board.is_game_over():
+                if ((board.result() == "1-0" and board.turn == chess.BLACK)
+                or (board.result() == "0-1" and board.turn == chess.WHITE)):
+                    board.pop()
+                    return move
+            
+            
             board_array = ChessUtils(board=board).convert2numpy()
             board_array = np.transpose(board_array, (2, 0, 1))
             board_array = torch.tensor(board_array).float().unsqueeze(0)
