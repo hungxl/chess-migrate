@@ -45,7 +45,7 @@ class Board:
     def setup_record(self):
         self.record = chess.pgn.Game()
         self.record.headers["Event"] = f"{self.white_player} vs {self.black_player} Chess"
-        self.record.headers["Date"] = time.strftime("%Y.%m.%d_%H.%M.%S")
+        self.record.headers["Date"] = time.strftime("%Y-%m-%dT%H%M%S")
         self.record.headers["White"] = self.white_player
         self.record.headers["Black"] = self.black_player
         self.node = self.record
