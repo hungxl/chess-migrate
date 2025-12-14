@@ -363,7 +363,7 @@ class Board:
                 self.winner = Color.BLACK if self.current_turn == Color.WHITE else Color.WHITE
                 # Update PGN result
                 if hasattr(self, 'record'):
-                    self.record.headers["Result"] = "1-0" if self.current_turn == Color.WHITE else "0-1"
+                    self.record.headers["Result"] = "0-1" if self.current_turn == Color.WHITE else "1-0"
             else:
                 # Stalemate
                 self.is_stalemate = True
