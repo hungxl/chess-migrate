@@ -218,8 +218,8 @@ class ChessGame:
         while True:
             screen.fill((30, 30, 30))
             title = font.render("Select Bots for Both Players", True, (255, 255, 255))
-            p1_label = small_font.render(f"Player 1 (White):", True, (200, 200, 255))
-            p2_label = small_font.render(f"Player 2 (Black):", True, (255, 200, 200))
+            p1_label = small_font.render("Player 1 (White):", True, (200, 200, 255))
+            p2_label = small_font.render("Player 2 (Black):", True, (255, 200, 200))
             p1_bot = small_font.render(f"{p1+1}. {bot_names[p1]}", True, (220, 220, 255))
             p2_bot = small_font.render(f"{p2+1}. {bot_names[p2]}", True, (255, 220, 220))
             hint1 = small_font.render("Use 1/2/3 to select Player 1", True, (180, 180, 180))
@@ -731,7 +731,7 @@ class ChessGame:
         if self.board.is_stalemate:
             text = "Stalemate!"
         else:
-            winner = self.board.winner
+            winner = self.board.white_player if self.board.winner == Color.WHITE else self.board.black_player
             text = f"Checkmate! {winner} wins!"
         
         text_surface = font.render(text, True, COLOR_TEXT)
